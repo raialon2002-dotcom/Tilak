@@ -1,0 +1,5 @@
+{
+  "name": "AI Story Sync",
+  "description": "An application that uses AI to automatically generate a script and voice-over for a sequence of images, then combines them into a synchronized video preview. Perfect for creating AI-narrated stories and cinematic scenes effortlessly.",
+  "requestFramePermissions": []
+}
