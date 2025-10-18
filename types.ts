@@ -12,4 +12,5 @@ export interface Scene {
   script: string;
   audioSrc?: string;
   duration?: number;
+  originalScript?: string;
 }

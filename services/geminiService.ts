@@ -5,7 +5,7 @@ const API_KEY = process.env.API_KEY;
 if (!API_KEY) {
   // In a real app, you'd want to handle this more gracefully.
   // For this context, we assume it's always available.
-  console.warn("API_KEY environment variable not set.");
+  console.warn("API_KEY पर्यावरण चर सेट नहीं है।");
 }
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
@@ -86,16 +86,18 @@ const createWavBlob = (pcmData: Uint8Array, sampleRate: number, numChannels: num
 // --- API Service Functions ---
 
 /**
- * Analyzes a sequence of images and generates a cinematic script for each in Hindi.
+ * Analyzes a sequence of images and generates a cinematic script for each.
  * @param images - An array of image data containing base64 strings and mime types.
- * @param mainCharacterName - The optional name of the main character.
+ * @param characterDefinitions - Definitions for characters to help the AI.
  * @param tone - The desired tone for the script (e.g., 'dramatic', 'comedic').
- * @returns A promise that resolves to an array of generated script texts in Hindi.
+ * @param userPrompt - The main prompt from the user describing the task.
+ * @returns A promise that resolves to an array of generated script texts.
  */
 export const generateScriptsForAllImages = async (
   images: { base64Image: string; mimeType: string }[],
-  mainCharacterName: string,
-  tone: string
+  characterDefinitions: { name: string; description: string }[],
+  tone: string,
+  userPrompt: string,
 ): Promise<string[]> => {
   try {
     const imageParts = images.map(img => ({
@@ -105,28 +107,32 @@ export const generateScriptsForAllImages = async (
       },
     }));
 
-    const characterPrompt = mainCharacterName
-      ? `मुख्य पात्र (MC) का नाम "${mainCharacterName}" है। अपनी स्क्रिप्ट में इस नाम का प्रयोग करें।`
-      : 'कहानी में मुख्य पात्र (MC) को पहचानें और लगातार उसका उल्लेख करें।';
+    let characterPrompt = 'मुख्य पात्र (MC) को पहचानें और पूरी कहानी में लगातार उनका उल्लेख करें।';
+    if (characterDefinitions.length > 0 && characterDefinitions.some(c => c.name)) {
+      const definedChars = characterDefinitions
+        .filter(c => c.name)
+        .map(c => `- ${c.name}: ${c.description || 'कोई विवरण नहीं दिया गया।'}`)
+        .join('\n');
+      characterPrompt = `यहां पात्रों की परिभाषाएं दी गई हैं। निरंतरता बनाए रखने के लिए उनका उपयोग करें:\n${definedChars}`;
+    }
     
-    const toneInstruction = `स्क्रिप्ट का लहजा "${tone}" होना चाहिए।`;
+    const toneInstruction = `स्क्रिप्ट का टोन "${tone}" होना चाहिए।`;
 
-    const prompt = `तुम एक विशेषज्ञ मंगा और कॉमिक्स स्क्रिप्टराइटर हो। तुम्हारा काम इन छवियों को एक आकर्षक कहानी में बदलना है।
-      नीचे दी गई छवियों का क्रम एक कहानी बताता है। ${characterPrompt}
+    const finalPrompt = `${userPrompt}
+
+      ${characterPrompt}
       ${toneInstruction}
 
-      प्रत्येक छवि के लिए, एक विस्तृत, सिनेमाई और आकर्षक स्क्रिप्ट हिंदी में लिखो। सिर्फ यह मत बताओ कि क्या हो रहा है, बल्कि उसे दिखाओ। पात्रों की भावनाओं, उनके बीच के आकर्षक संवादों और माहौल का जीवंत वर्णन करो। सुनिश्चित करो कि कहानी का प्रवाह सुसंगत हो और पात्रों का विकास हो।
-
-      अपनी प्रतिक्रिया JSON प्रारूप में एक ऐरे के रूप में दो। यह अत्यंत महत्वपूर्ण है कि JSON ऐरे में स्ट्रिंग्स की संख्या प्रदान की गई छवियों की संख्या (${images.length}) के ठीक बराबर हो। यदि ${images.length} छवियाँ हैं, तो JSON ऐरे में ठीक ${images.length} स्ट्रिंग्स होनी चाहिए, प्रत्येक छवि के लिए एक। कोई भी आइटम जोड़ें या हटाएं नहीं। केवल JSON ऐरे ही आउटपुट करें।
+      अपनी प्रतिक्रिया JSON ऐरे के रूप में प्रदान करें। यह बहुत महत्वपूर्ण है कि JSON ऐरे में स्ट्रिंग्स की संख्या प्रदान की गई छवियों की संख्या (${images.length}) के ठीक बराबर हो। यदि ${images.length} छवियां हैं, तो JSON ऐरे में ठीक ${images.length} स्ट्रिंग्स होने चाहिए, प्रत्येक छवि के लिए एक। कोई भी आइटम जोड़ें या हटाएं नहीं। केवल JSON ऐरे आउटपुट करें।
 
       उदाहरण प्रारूप:
       [
-        "पहली छवि के लिए स्क्रिप्ट यहाँ...",
-        "दूसरी छवि के लिए स्क्रिप्ट यहाँ...",
+        "पहली छवि के लिए स्क्रिप्ट यहाँ आएगी...",
+        "दूसरी छवि के लिए स्क्रिप्ट यहाँ आएगी...",
         "और इसी तरह..."
       ]`;
       
-    const textPart = { text: prompt };
+    const textPart = { text: finalPrompt };
     
     const response = await ai.models.generateContent({
       model: SCRIPT_GENERATION_MODEL,
@@ -137,7 +143,7 @@ export const generateScriptsForAllImages = async (
           type: Type.ARRAY,
           items: {
             type: Type.STRING,
-            description: 'कहानी के एक दृश्य का वर्णन करने वाली कथात्मक स्क्रिप्ट।',
+            description: 'कहानी में एक दृश्य का वर्णन करने वाली एक कथात्मक स्क्रिप्ट।',
           },
         },
       },
@@ -148,21 +154,21 @@ export const generateScriptsForAllImages = async (
     const scripts = JSON.parse(responseText);
 
     if (!Array.isArray(scripts) || scripts.length !== images.length) {
-      console.error("Mismatched script and image count. Raw response:", responseText);
-      throw new Error(`AI से स्क्रिप्ट और छवियों की संख्या मेल नहीं खाती। अपेक्षित ${images.length}, प्राप्त ${scripts.length}।`);
+      console.error("स्क्रिप्ट और छवि की संख्या में मेल नहीं है। रॉ प्रतिक्रिया:", responseText);
+      throw new Error(`AI से प्राप्त स्क्रिप्ट की संख्या (${scripts.length}) छवियों की संख्या (${images.length}) से मेल नहीं खाती है।`);
     }
 
     return scripts;
   } catch (error) {
-    console.error("Error generating scripts:", error);
-    throw new Error("छवियों के लिए स्क्रिप्ट बनाने में विफल।");
+    console.error("स्क्रिप्ट जेनरेट करते समय त्रुटि:", error);
+    throw new Error("छवियों के लिए स्क्रिप्ट जेनरेट करने में विफल।");
   }
 };
 
 
 /**
- * Converts a Hindi script text into a voice-over audio.
- * @param script - The Hindi text to be converted to speech.
+ * Converts a script text into a voice-over audio.
+ * @param script - The text to be converted to speech.
  * @param voiceName - The name of the pre-built voice to use.
  * @returns A promise that resolves to the base64 encoded audio string.
  */
@@ -170,7 +176,7 @@ export const generateVoiceOver = async (script: string, voiceName: string): Prom
   try {
     const response = await ai.models.generateContent({
         model: TTS_MODEL,
-        contents: [{ parts: [{ text: `शांति से, कथात्मक लहजे में बोलें: ${script}` }] }],
+        contents: [{ parts: [{ text: `एक शांत, कथात्मक स्वर में बोलें: ${script}` }] }],
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {
@@ -183,13 +189,13 @@ export const generateVoiceOver = async (script: string, voiceName: string): Prom
     
     const audioBase64 = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
     if (!audioBase64) {
-      throw new Error("No audio data received from API.");
+      throw new Error("API से कोई ऑडियो डेटा प्राप्त नहीं हुआ।");
     }
     
     return audioBase64;
   } catch (error) {
-    console.error("Error generating voice-over:", error);
-    throw new Error("Failed to generate voice-over.");
+    console.error("वॉयस-ओवर जेनरेट करते समय त्रुटि:", error);
+    throw new Error("वॉयस-ओवर जेनरेट करने में विफल।");
   }
 };
 

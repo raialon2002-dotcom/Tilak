@@ -1,5 +1,5 @@
 {
-  "name": "AI Story Sync",
-  "description": "An application that uses AI to automatically generate a script and voice-over for a sequence of images, then combines them into a synchronized video preview. Perfect for creating AI-narrated stories and cinematic scenes effortlessly.",
+  "name": "मनहवा टूल्स",
+  "description": "मंगा और मनहवा रचनाकारों के लिए AI-संचालित उपकरणों का एक सूट। छवियों को मिलाएं, पैनल काटें, और आसानी से आकर्षक वीडियो स्क्रिप्ट बनाएं।",
   "requestFramePermissions": []
 }

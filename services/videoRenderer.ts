@@ -22,7 +22,7 @@ export const renderVideo = (
       canvas.height = HEIGHT;
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-        throw new Error("Could not create canvas context");
+        throw new Error("कैनवास संदर्भ नहीं बनाया जा सका");
       }
 
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -35,7 +35,7 @@ export const renderVideo = (
       ]);
 
       if (!MediaRecorder.isTypeSupported('video/webm; codecs=vp9')) {
-         console.warn('VP9 codec not supported, falling back. Quality may be lower.');
+         console.warn('VP9 कोडेक समर्थित नहीं है, फॉलबैक किया जा रहा है। गुणवत्ता कम हो सकती है।');
       }
       const recorder = new MediaRecorder(combinedStream, {
          mimeType: 'video/webm; codecs=vp9',

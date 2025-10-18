@@ -32,7 +32,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesUpload, disabled 
             });
             resolve();
           } else {
-            reject(new Error("Failed to read file"));
+            reject(new Error("फ़ाइल पढ़ने में विफल"));
           }
         };
         reader.onerror = reject;
@@ -56,12 +56,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesUpload, disabled 
   };
 
   return (
-    <div className="w-full p-4 md:p-6 bg-gray-800 border-2 border-dashed border-gray-600 rounded-xl transition-all duration-300 hover:border-cyan-400">
+    <div className="w-full p-4 md:p-6 bg-white border-2 border-dashed border-gray-300 rounded-xl transition-all duration-300 hover:border-indigo-400">
       <div className="flex flex-col items-center justify-center">
-        <label htmlFor="file-upload" className={`cursor-pointer flex flex-col items-center justify-center text-gray-400 hover:text-cyan-300 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+        <label htmlFor="file-upload" className={`cursor-pointer flex flex-col items-center justify-center text-gray-500 hover:text-indigo-600 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
           <UploadIcon className="w-12 h-12 mb-2" />
-          <span className="font-semibold">अपलोड करने के लिए क्लिक करें या खींचें और छोड़ें</span>
-          <span className="text-sm">पीएनजी, जेपीजी, या वेबपी</span>
+          <span className="font-semibold">अपलोड करने के लिए क्लिक करें या ड्रैग एंड ड्रॉप करें</span>
+          <span className="text-sm">PNG, JPG, या WEBP</span>
         </label>
         <input 
           id="file-upload" 
@@ -77,13 +77,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesUpload, disabled 
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {images.map((image, index) => (
             <div key={image.id} className="relative group aspect-square">
-              <span className="absolute -top-2 -left-2 z-10 bg-cyan-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">{index + 1}</span>
+              <span className="absolute -top-2 -left-2 z-10 bg-indigo-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">{index + 1}</span>
               <img src={image.base64Src} alt={`upload-preview-${index}`} className="w-full h-full object-cover rounded-lg shadow-md" />
               <button 
                 onClick={() => !disabled && removeImage(image.id)}
                 className={`absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity ${disabled ? 'cursor-not-allowed' : 'hover:bg-red-500'}`}
                 disabled={disabled}
-                aria-label="Remove image"
+                aria-label="छवि हटाएँ"
               >
                 <CloseIcon className="w-4 h-4" />
               </button>
